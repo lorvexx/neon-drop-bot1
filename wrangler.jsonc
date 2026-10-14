@@ -1,0 +1,9 @@
+{
+  "name": "neondrop-bot",
+  "main": "bot-worker.js",
+  "compatibility_date": "2025-10-01",
+  "observability": { "enabled": true },
+  "vars": {
+    "GAME_URL": "https://lorvexx.github.io/"
+  }
+}
