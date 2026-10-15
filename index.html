@@ -270,6 +270,26 @@ button:active{transform:scale(.97)}
 .msg.me{margin-left:auto;border-radius:14px 14px 4px 14px;background:color-mix(in srgb,var(--ac) 22%,var(--s1))}
 .msg small{display:block;color:var(--mu);font-size:10px;margin-top:2px}
 .cin{display:flex;gap:8px;align-items:center}
+/* ещё приятнее */
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(rgba(25,255,140,.035) 1px,transparent 1px) 0 0/100% 38px,linear-gradient(90deg,rgba(25,255,140,.035) 1px,transparent 1px) 0 0/38px 100%}
+.go:not([disabled]){background-image:linear-gradient(110deg,#19ff8c 0%,#00c96f 38%,#8dffc8 50%,#00c96f 62%,#19ff8c 100%);background-size:220% 100%;animation:shim 3.4s linear infinite}
+@keyframes shim{to{background-position:-220% 0}}
+.go.alt:not([disabled]){animation:none;background-image:none;background-color:var(--s2)}
+.card{background:linear-gradient(160deg,var(--s1),color-mix(in srgb,var(--s1) 78%,var(--s2)))}
+.card.sel{background:var(--s2)}
+.sec h2::before{content:"";display:inline-block;width:3px;height:12px;border-radius:2px;background:var(--ac);margin-right:8px;vertical-align:-1px;box-shadow:0 0 8px var(--ac)}
+nav button.on{box-shadow:0 0 16px rgba(25,255,140,.35)}
+.bal{box-shadow:0 0 0 1px var(--s2),0 6px 18px rgba(0,0,0,.35)}
+/* обучение */
+.tutbox{display:none}
+.tutbox.on{display:block;position:fixed;left:0;right:0;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:48;padding:0 16px;pointer-events:none}
+.tutc{pointer-events:auto;max-width:520px;margin:0 auto;background:var(--s1);border:1px solid color-mix(in srgb,var(--ac) 55%,transparent);border-radius:18px;padding:14px 16px;box-shadow:0 10px 40px rgba(0,0,0,.6),0 0 24px rgba(25,255,140,.25);animation:fup .3s ease both}
+.tutc h3{margin:0 0 6px;font:700 15px Unbounded,system-ui,sans-serif}
+.tutc p{margin:0 0 12px;color:var(--mu);font-size:14px}
+.tutp{color:var(--ac);font-size:11px;font-weight:800;margin-bottom:4px}
+.tutb{display:flex;justify-content:space-between;gap:8px}
+.tuthl{position:relative;z-index:30;border-radius:14px;box-shadow:0 0 0 3px var(--ac),0 0 26px var(--ac);animation:tutp 1.2s ease-in-out infinite}
+@keyframes tutp{50%{box-shadow:0 0 0 3px var(--ac),0 0 8px var(--ac)}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -286,6 +306,7 @@ button:active{transform:scale(.97)}
 <div class="toast" id="toast"></div>
 <div class="fmtbox" id="fmtbox"></div>
 <div class="fmtbox" id="namebox" style="z-index:51"></div>
+<div class="tutbox" id="tutbox"></div>
 <div class="auraov" id="auraov"></div>
 <script>
 window.onerror=function(m,u,l){var e=document.getElementById("main");if(e)e.innerHTML='<div class="empty">Ошибка: '+m+' (строка '+l+')</div>'};
@@ -297,7 +318,7 @@ if(!st||typeof st.bal!=="number"||!Array.isArray(st.inv))st={bal:1000,inv:[],uid
 let tab="up",sel=new Set(),extra=0,target=null,R=0,busy=false,res=null,hint="";
 const fmt=n=>Math.round(n).toLocaleString("ru-RU");
 const rar=p=>p<300?"c0":p<1500?"c1":p<5000?"c2":p<12000?"c3":"c4";
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}};
+const save=()=>{st.ts=Date.now();try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){};cloudSoon()};
 function toast(t){const e=document.getElementById("toast");e.textContent=t;e.classList.add("on");clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove("on"),1800)}
 function bump(){const b=document.getElementById("bal");b.classList.add("bump");setTimeout(()=>b.classList.remove("bump"),250)}
 function card(s,o={}){return `<button class="card ${o.sel?"sel":""}" ${o.dis?"disabled":""} ${o.click?`onclick="${o.click}"`:""}>
@@ -325,7 +346,7 @@ function addX(v){if(busy)return;extra=Math.min(st.bal,extra+v);fix();render()}
 function clr(){if(busy)return;sel.clear();extra=0;render()}
 function fix(){if(target!==null&&SK[target].p<=stakeVal())target=null;res=null}
 function buy(id){const s=SK[id];if(st.bal<s.p)return;st.bal-=s.p;st.inv.push({uid:st.uid++,id,s:[]});save();render();bump();toast("Куплено: "+s.n)}
-let rc=0;function resetAll(){if(!rc){rc=1;toast("Нажми ещё раз, чтобы сбросить всё");setTimeout(()=>rc=0,3000);return}rc=0;st={bal:1000,inv:[],uid:1,stk:[],pf:st.pf,im:st.im,pm:st.pm,fmt:st.fmt,snd:st.snd,fr:st.fr,rq:st.rq,ch:st.ch,gf:st.gf,seen:st.seen,un:st.un,fcode:st.fcode,uname:st.uname,nmOk:st.nmOk,fresh:1};giveStart();sel.clear();extra=0;target=null;res=null;save();render()}
+let rc=0;function resetAll(){if(!rc){rc=1;toast("Нажми ещё раз, чтобы сбросить всё");setTimeout(()=>rc=0,3000);return}rc=0;st={bal:1000,inv:[],uid:1,stk:[],pf:st.pf,im:st.im,pm:st.pm,fmt:st.fmt,snd:st.snd,fr:st.fr,rq:st.rq,ch:st.ch,gf:st.gf,seen:st.seen,un:st.un,fcode:st.fcode,uname:st.uname,nmOk:st.nmOk,tut:st.tut,tutB:st.tutB,fresh:1};giveStart();sel.clear();extra=0;target=null;res=null;save();render()}
 function spin(){
   if(busy||check())return;
   const p=chance(),tid=target,stk=stakeVal();busy=true;res=null;
@@ -391,7 +412,7 @@ const tgAll=()=>{const v=stakeVal();return v?RK.filter(s=>s.p>v&&v/s.p*EDGE>=.00
 const tgList=()=>{const a=tgAll();if(a.length<=150)return a;const k=a.length/150,o=Array.from({length:150},(_,i)=>a[Math.floor(i*k)]);if(target!==null&&SK[target]&&!o.some(s=>s.id===target)){o.push(SK[target]);o.sort((x,y)=>x.p-y.p)}return o};
 const pct=p=>{const x=p*100;return(x>=10?x.toFixed(0):x>=1?x.toFixed(1):x.toFixed(2))+"%"};
 function navR(){balSet();document.getElementById("me").innerHTML=av(st.pf)+"<b>"+esc(nick())+"</b>";const pv=document.getElementById("pv");if(pv)pv.innerHTML=pvH();document.getElementById("nav").innerHTML=[["up","⚡","Апгрейд"],["case","📦","Кейсы"],["mp","🌐","Онлайн"+badge()],["shop","🛒","Магазин"],["inv","🎒","Скины "+st.inv.length]].map(([k,i,l])=>`<button class="${tab===k?"on":""}" onclick="go('${k}')"><span class="ni">${i}</span>${l}</button>`).join("")}
-function render(){navR();sndR();tgBack();document.getElementById("main").innerHTML=tab==="up"?vUp():tab==="mp"?vMp():tab==="pf"?vPf():tab==="case"?vCase():tab==="shop"?vShop():vInv()}
+function render(){navR();sndR();tgBack();document.getElementById("main").innerHTML=tab==="up"?vUp():tab==="mp"?vMp():tab==="pf"?vPf():tab==="case"?vCase():tab==="shop"?vShop():vInv();if(tab==="pf")tgMount()}
 const stkCard=(k,x,c)=>{const s=STK[k];return `<button class="card ${ss===x?"sel":""}" style="flex:0 0 96px" onclick="${c}"><div class="art sa${st.im["s"+k]?" ph":""}" style="--h:${k*37%360};height:56px;display:grid;place-items:center;font-size:30px${st.im["s"+k]?`;--im:url(${st.im["s"+k]})`:""}"><span style="position:relative;z-index:1">${st.im["s"+k]?"":s.e}</span></div><div class="nm">${s.n}</div><div class="pr"><i>◈</i> ${fmt(s.p)}</div><div class="rar ${rar(s.p)}"></div></button>`};
 function shopGrid(){const l=SK.filter(s=>!s.x&&s.n.toLowerCase().includes(q.toLowerCase())&&(cat==="k"?KN(s):cat==="g"?GL(s):cat==="w"?!KN(s)&&!GL(s):true)).sort((a,b)=>a.p-b.p);return `<div class="grid">${l.slice(0,lim).map(s=>card(s,{extra:`<button class="btn buy" ${st.bal<s.p?"disabled":""} onclick="buy(${s.id})">Купить</button>`})).join("")}</div>${l.length>lim?`<button class="btn" style="padding:12px" onclick="lim+=24;document.getElementById('sg').innerHTML=shopGrid()">Показать ещё</button>`:l.length?"":`<div class="empty">Ничего не найдено</div>`}`}
 function vShop(){return `<div class="sec"><h2>Наклейки · нажми, чтобы купить</h2><div class="row">${STK.map(s=>stkCard(s.id,-1,`buyS(${s.id})`)).join("")}</div></div><div class="sec"><h2>Скины · ${SK.length}</h2><div class="chips" style="margin-bottom:10px">${[["","Все"],["w","Оружие"],["k","Ножи"],["g","Перчатки"]].map(([k,l])=>`<button class="chip ${cat===k?"on":""}" onclick="cat='${k}';lim=24;render()">${l}</button>`).join("")}</div><input class="srch" placeholder="Поиск по названию" value="${q.replace(/"/g,"&quot;")}" oninput="q=this.value;lim=24;document.getElementById('sg').innerHTML=shopGrid()"><div id="sg">${shopGrid()}</div></div>`}
@@ -417,7 +438,7 @@ function vPf(){const p=st.pf;return `<div class="sec"><div id="pv">${pvH()}</div
 <h2>Иконка</h2><div class="avg">${EM.map(e=>`<button class="eb ${p.e===e&&!p.img?"sel":""}" onclick="setEm('${e}')">${e}</button>`).join("")}</div>
 <h2>Цвет фона</h2><input type="range" class="rg" min="0" max="359" value="${p.c}" oninput="setHue(this.value)">
 <h2>Своё фото</h2><div class="chips"><label class="chip" for="upf">Загрузить фото</label><input type="file" id="upf" accept="image/*" hidden onchange="upImg(this)">${p.img?`<button class="chip x" onclick="rmImg()">Убрать фото</button>`:""}</div>
-<h2 style="margin-top:20px">Формат экрана</h2><div class="chips">${[["phone","📱 Телефон"],["tablet","📲 Планшет"],["pc","🖥 ПК"]].map(([k,l])=>`<button class="chip ${(st.fmt||"phone")===k?"on":""}" onclick="setFmt('${k}')">${l}</button>`).join("")}</div><h2 style="margin-top:20px">Промокод</h2><input class="srch" id="pcode" maxlength="24" placeholder="Введи промокод" style="margin-bottom:8px;text-transform:uppercase"><button class="go" style="margin-top:0" onclick="usePromo()">Активировать</button><p class="hint" style="text-align:left">Каждый промокод можно использовать один раз на аккаунт.</p><h2 style="margin-top:20px">Свои картинки для предметов</h2><p class="hint" style="text-align:left;margin:0 0 12px">Нажми на плитку и выбери своё фото. Оно заменит рисунок у всех предметов этого типа.</p>${slots("Оружие",TN.map((n,i)=>["w"+i,n,"art w"+i,i*45]))}${slots("Кейсы",CB.map((c,i)=>["c"+i,c.n.replace("Кейс ",""),"art cr",c.h]))}${slots("Наклейки",STK.map(k=>["s"+k.id,k.n,"art sa",k.id*37%360]))}${Object.keys(st.im).length?`<button class="chip x" onclick="st.im={};save();render()">Вернуть все рисунки</button>`:""}<button class="go" onclick="go('up')">Готово</button></div>`}
+<h2 style="margin-top:20px">Аккаунт</h2><div class="stake" style="align-items:center"><span>${accKind()}</span></div><div id="tgw" style="margin-bottom:8px"></div><button class="chip" onclick="tutStart()">📘 Пройти обучение</button><h2 style="margin-top:20px">Формат экрана</h2><div class="chips">${[["phone","📱 Телефон"],["tablet","📲 Планшет"],["pc","🖥 ПК"]].map(([k,l])=>`<button class="chip ${(st.fmt||"phone")===k?"on":""}" onclick="setFmt('${k}')">${l}</button>`).join("")}</div><h2 style="margin-top:20px">Промокод</h2><input class="srch" id="pcode" maxlength="24" placeholder="Введи промокод" style="margin-bottom:8px;text-transform:uppercase"><button class="go" style="margin-top:0" onclick="usePromo()">Активировать</button><p class="hint" style="text-align:left">Каждый промокод можно использовать один раз на аккаунт.</p><h2 style="margin-top:20px">Свои картинки для предметов</h2><p class="hint" style="text-align:left;margin:0 0 12px">Нажми на плитку и выбери своё фото. Оно заменит рисунок у всех предметов этого типа.</p>${slots("Оружие",TN.map((n,i)=>["w"+i,n,"art w"+i,i*45]))}${slots("Кейсы",CB.map((c,i)=>["c"+i,c.n.replace("Кейс ",""),"art cr",c.h]))}${slots("Наклейки",STK.map(k=>["s"+k.id,k.n,"art sa",k.id*37%360]))}${Object.keys(st.im).length?`<button class="chip x" onclick="st.im={};save();render()">Вернуть все рисунки</button>`:""}<button class="go" onclick="go('up')">Готово</button></div>`}
 function setNick(v){st.pf.n=String(v).slice(0,16);save();navR()}
 function setEm(e){st.pf.e=e;st.pf.img="";save();render()}
 function setHue(v){st.pf.c=+v;save();navR()}
@@ -531,7 +552,7 @@ function liveInit(){
   DB.collection("drops").orderBy("t","desc").limit(25).onSnapshot(s=>{FEED=s.docs.map(x=>x.data());feedRender()},e=>onlFail(e&&e.code));
   const beat=()=>DB.doc("presence/"+ME).set({t:Date.now()}).catch(()=>{});beat();setInterval(beat,20000);
   DB.collection("presence").limit(300).onSnapshot(s=>{PR=s.docs.map(x=>({id:x.id,t:+x.data().t||0}));countOnl()},e=>onlFail(e&&e.code));
-  setInterval(countOnl,10000);addEventListener("pagehide",()=>{try{DB.doc("presence/"+ME).delete()}catch(e){}});nameInit();socInit()}
+  setInterval(countOnl,10000);addEventListener("pagehide",()=>{try{DB.doc("presence/"+ME).delete()}catch(e){}});nameInit();socInit();cloudInit()}
 
 let ONLERR="";
 const OFFMSG="Подключаемся к онлайну… подожди несколько секунд.";
@@ -559,7 +580,7 @@ function crateFall(then){const c=document.getElementById("crt"),f=document.getEl
 function fmtScreen(){if(st.fmt)return;const w=innerWidth,g=w<600?"phone":w<1000?"tablet":"pc",b=document.getElementById("fmtbox");b.className="fmtbox on";
   b.innerHTML=`<div class="fmtc"><div class="sign" style="padding-top:0"><span>NEON</span><span>DROP</span></div><h2>Выбери формат экрана</h2><p>Его можно изменить позже в профиле</p><div class="fmts">${[["phone","📱","Телефон"],["tablet","📲","Планшет"],["pc","🖥","ПК"]].map(([k,i,l])=>`<button class="fmo ${g===k?"rec":""}" onclick="setFmt('${k}')"><span>${i}</span>${l}${g===k?"<small>рекомендуем</small>":""}</button>`).join("")}</div></div>`}
 function setFmt(k){st.fmt=k;document.documentElement.dataset.fmt=k;save();const b=document.getElementById("fmtbox");b.className="fmtbox";b.innerHTML="";render();if(!st.uname)nameScreen()}
-document.documentElement.dataset.fmt=st.fmt||"phone";fmtScreen();if(st.fmt&&!st.uname)nameScreen();
+document.documentElement.dataset.fmt=st.fmt||"phone";fmtScreen();if(st.fmt&&!st.uname)nameScreen();else if(st.fmt&&st.uname&&!st.tut)setTimeout(()=>tutStart(),1200);
 
 const sfx=(()=>{let C=null,M=null;const on=()=>st.snd!==0;
   function unlock(){try{if(!C){const A=window.AudioContext||window.webkitAudioContext;if(!A)return;C=new A();M=C.createGain();M.gain.value=.5;M.connect(C.destination)}if(C.state==="suspended")C.resume()}catch(e){}}
@@ -673,7 +694,7 @@ async function submitName(){if(nameBusy)return;const el=document.getElementById(
     if(d){if(!(await claimName(n))){er("Этот ник уже занят, выбери другой");return}
       if(st.uname&&st.nmOk&&st.uname.toLowerCase()!==n.toLowerCase())DB.doc("usernames/"+st.uname.toLowerCase()).delete().catch(()=>{});st.nmOk=true}
     else st.nmOk=false;
-    st.uname=n;st.pf.n=n;save();nameClose();navR();render();pubProfile();toast(d?"Ник сохранён: "+n:"Ник сохранён на этом устройстве. Уникальность проверим при подключении к онлайну")}
+    st.uname=n;st.pf.n=n;save();nameClose();navR();render();pubProfile();if(!st.tut)setTimeout(tutStart,500);toast(d?"Ник сохранён: "+n:"Ник сохранён на этом устройстве. Уникальность проверим при подключении к онлайну")}
   catch(e){er("Не получилось проверить. Попробуй ещё раз")}
   finally{nameBusy=false;bt.disabled=false;bt.textContent="Продолжить"}}
 
@@ -702,6 +723,52 @@ function shareInvite(){const url=TG_APP||location.href.split("#")[0],tx="Игр�
   if(navigator.share){navigator.share({title:"NEON DROP",text:tx,url}).catch(()=>{});return}
   try{navigator.clipboard.writeText(tx+" "+url).then(()=>toast("Приглашение скопировано"),()=>toast(tx))}catch(e){toast(tx)}}
 tgInit();
+
+/* ---- обучение ---- */
+window.AUTH_URL="https://neondrop-bot.arturburlimov200.workers.dev";
+const TUT=[
+ {t:"up",h:"#bal",ti:"Добро пожаловать в NEON DROP!",tx:"Это симулятор апгрейдера и кейсов. Валюта ◈ виртуальная, реальные деньги не используются. За минуту покажу, как всё устроено."},
+ {t:"up",h:"#gob",ti:"Апгрейд",tx:"Выбери скины или монеты для ставки, потом скин-цель. Нажми «Апгрейд»: если стрелка попадёт в зелёную зону, цель твоя. Если нет, получишь утешительный приз."},
+ {t:"up",h:"#wb",ti:"Шанс победы",tx:"Колесо показывает шанс. Чем дороже цель по сравнению со ставкой, тем он ниже. Кнопки быстрого шанса (0.01%, 10%, 50% и другие) сами подберут цель."},
+ {t:"up",h:".go.alt",ti:"Мистери-апгрейд",tx:"Скин выпадает гарантированно, но он может стоить меньше или больше твоей ставки. Зелёная аура покажет момент открытия."},
+ {t:"case",h:"#nav button:nth-child(2)",ti:"Кейсы",tx:"Платные кейсы показывают шансы каждого предмета. Бесплатные кейсы с монетами и скинами можно открывать раз в 5 минут."},
+ {t:"mp",h:"#nav button:nth-child(3)",ti:"Онлайн",tx:"Здесь баттлы кейсов, рынок трейдов, друзья, чат и подарки. Друзей добавляют по коду."},
+ {t:"shop",h:"#nav button:nth-child(4)",ti:"Магазин",tx:"Покупай скины и наклейки. Наклейки на скинах повышают их цену. Купленное можно продать во вкладке «Скины»."},
+ {t:"pf",h:"#me",ti:"Профиль",tx:"Здесь ник, иконка, промокоды, формат экрана и вход через Telegram, чтобы прогресс сохранялся в облаке."},
+ {t:"up",h:null,ti:"Готово!",tx:"Удачи! За прохождение обучения дарим 500 ◈."}
+];
+let tutI=-1;
+function tutClear(){document.querySelectorAll(".tuthl").forEach(e=>e.classList.remove("tuthl"))}
+function tutStart(){if(busy)return;tutI=0;tutShow()}
+function tutShow(){const s=TUT[tutI];if(!s){tutEnd(true);return}
+  if(tab!==s.t){tab=s.t;fs=null;cs=null;mpSub="game";render();tabIn();scrollTo(0,0)}
+  tutClear();const el=s.h&&document.querySelector(s.h);if(el){el.classList.add("tuthl");try{el.scrollIntoView({block:"center",behavior:"smooth"})}catch(e){}}
+  const b=document.getElementById("tutbox");b.className="tutbox on";
+  b.innerHTML=`<div class="tutc"><div class="tutp">${tutI+1} / ${TUT.length}</div><h3>${s.ti}</h3><p>${s.tx}</p><div class="tutb"><button class="chip" onclick="tutEnd(false)">Пропустить</button><button class="chip on" onclick="tutNext()">${tutI===TUT.length-1?"Получить бонус":"Дальше"}</button></div></div>`}
+function tutNext(){tutI++;tutShow()}
+function tutEnd(done){tutClear();const b=document.getElementById("tutbox");b.className="tutbox";b.innerHTML="";tutI=-1;st.tut=1;
+  if(done&&!st.tutB){st.tutB=1;st.bal+=500;toast("Бонус за обучение: +◈ 500");bump()}save();tab="up";render()}
+/* ---- вход через Telegram и облако ---- */
+const accKind=()=>{const m=String(ME||"");if(m.startsWith("tg_"))return"✓ Вход через Telegram, прогресс хранится в облаке";return DB?"Гостевой вход: прогресс только на этом устройстве":"Онлайн не подключён"};
+let _tgBot=null,_cs=0,_ct=null;
+async function tgAuthCb(user){try{const r=await fetch(AUTH_URL+"/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({user})}),j=await r.json();if(!j.token){toast("Вход не удался: "+(j.error||r.status));return}await window.__fbLogin(j.token);toast("Вход выполнен, перезагружаем…");setTimeout(()=>location.reload(),700)}catch(e){toast("Вход не удался")}}
+async function tgMount(){const box=document.getElementById("tgw");if(!box||!window.__fbLogin||TGW()||String(ME||"").startsWith("tg_"))return;
+  try{if(!_tgBot){const r=await fetch(AUTH_URL+"/config");_tgBot=(await r.json()).bot}}catch(e){}
+  if(!_tgBot){box.innerHTML='<small style="color:var(--mu)">Вход через Telegram пока недоступен</small>';return}
+  const sc=document.createElement("script");sc.async=true;sc.src="https://telegram.org/js/telegram-widget.js?22";sc.setAttribute("data-telegram-login",_tgBot);sc.setAttribute("data-size","large");sc.setAttribute("data-radius","12");sc.setAttribute("data-userpic","false");sc.setAttribute("data-onauth","tgAuthCb(user)");sc.setAttribute("data-request-access","write");box.innerHTML="";box.appendChild(sc)}
+function cloudSoon(){try{if(!_cs||!DB||!String(ME||"").startsWith("tg_"))return;clearTimeout(_ct);_ct=setTimeout(cloudPush,8000)}catch(e){}}
+async function cloudPush(){try{const c={...st};["im","ch","seen","fmt","snd","gf"].forEach(k=>delete c[k]);const d=JSON.stringify(c);if(d.length>900000)return;await DB.doc("saves/"+ME).set({t:st.ts||Date.now(),d})}catch(e){}}
+async function cloudInit(){if(!DB||!String(ME||"").startsWith("tg_"))return;
+  try{if(st.owner!==ME){st.owner=ME;st.nmOk=false}
+    const sn=await DB.doc("saves/"+ME).get();
+    if(sn.exists){const o=sn.data(),cl=JSON.parse(o.d||"{}");
+      if((o.t||0)>(st.ts||0)&&cl&&typeof cl.bal==="number"){try{localStorage.setItem(KEY+"-bak",JSON.stringify(st))}catch(e){}
+        const keep={im:st.im,ch:st.ch,seen:st.seen,fmt:st.fmt,snd:st.snd,gf:st.gf};Object.keys(st).forEach(k=>delete st[k]);Object.assign(st,cl,keep);
+        st.inv=st.inv||[];st.stk=st.stk||[];st.fr=st.fr||[];st.rq=st.rq||[];st.un=st.un||{};st.pf=st.pf||{n:"Игрок",e:"🦊",c:260,img:""};st.im=st.im||{};st.ch=st.ch||{};st.seen=st.seen||[];st.gf=st.gf||[];st.owner=ME;st.ts=o.t;
+        try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}navR();render();toast("Прогресс загружен из облака")}
+      else{_cs=1;cloudPush()}}
+    else{_cs=1;cloudPush()}}catch(e){}
+  _cs=1}
 render();
 mpInit();
 onlR();feedRender();
@@ -709,14 +776,22 @@ onlR();feedRender();
 <script>window.__gh=1;setTimeout(function(){if(!window.__ghok&&window.onlFail)onlFail("timeout")},12000)</script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {getAuth,signInAnonymously} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {getAuth,signInAnonymously,signInWithCustomToken} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {getFirestore,collection,doc,addDoc,getDoc,updateDoc,deleteDoc,onSnapshot,query,limit,orderBy,setDoc,runTransaction} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 try{
   const app=initializeApp({apiKey:"AIzaSyBcqnbPQRlWz7YcmGYEkuk9RFsPSC4LatM",authDomain:"neon-drop-49ce4.firebaseapp.com",projectId:"neon-drop-49ce4",storageBucket:"neon-drop-49ce4.firebasestorage.app",messagingSenderId:"848555797182",appId:"1:848555797182:web:e0ae4d2d25d9ac7bf50cef"});
   const fs=getFirestore(app);
   window.__ghstep=[["Firebase SDK","загружен"]];
-  const uid=(await signInAnonymously(getAuth(app))).user.uid;
-  window.__ghok=1;window.__ghstep.push(["Анонимный вход","ок"]);
+  const auth=getAuth(app);
+  await auth.authStateReady();
+  let uid=null,kind="гостевой";
+  if(String(location.hash).includes("tgWebAppData")){for(let i=0;i<30&&!(window.Telegram&&Telegram.WebApp&&Telegram.WebApp.initData);i++)await new Promise(r=>setTimeout(r,100))}
+  const tw=window.Telegram&&Telegram.WebApp;
+  if(tw&&tw.initData&&window.AUTH_URL){try{const r=await fetch(window.AUTH_URL+"/auth",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({initData:tw.initData})}),j=await r.json();if(j.token){uid=(await signInWithCustomToken(auth,j.token)).user.uid;kind="Telegram"}else window.__ghstep.push(["Вход через Telegram","ошибка: "+(j.error||r.status)])}catch(e){window.__ghstep.push(["Вход через Telegram","ошибка: "+(e.code||e.message)])}}
+  if(!uid&&auth.currentUser){uid=auth.currentUser.uid;kind=uid.startsWith("tg_")?"Telegram (сохранённый вход)":"гостевой"}
+  if(!uid)uid=(await signInAnonymously(auth)).user.uid;
+  window.__fbLogin=async t=>{await signInWithCustomToken(auth,t)};
+  window.__ghok=1;window.__ghstep.push(["Вход",kind+", id "+uid.slice(0,8)]);
   const sd=d=>({id:d.id,exists:d.exists(),data:()=>d.data()});
   const snap=(q,cb,er)=>onSnapshot(q,s=>cb({docs:s.docs.map(sd)}),er);
   const DBx={
